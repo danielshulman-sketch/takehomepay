@@ -1,0 +1,38 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model PayPeriod {
+  id             String   @id @default(cuid())
+  startDate      DateTime
+  endDate        DateTime
+  pensionEnabled Boolean  @default(true)
+  isCurrent      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  shifts         Shift[]
+
+  @@index([isCurrent])
+}
+
+model Shift {
+  id           String     @id @default(cuid())
+  date         DateTime
+  startTime    String
+  endTime      String
+  hoursWorked  Float
+  payRate      Float
+  grossPay     Float
+  tips         Float      @default(0)
+  payPeriodId  String
+  payPeriod    PayPeriod  @relation(fields: [payPeriodId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@index([payPeriodId])
+  @@index([date])
+}
