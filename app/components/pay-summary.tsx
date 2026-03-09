@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Calendar, TrendingUp, Wallet, RefreshCw, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
+import { Calendar, TrendingUp, Wallet, RefreshCw, ChevronDown, ChevronUp, ShieldCheck, Printer } from 'lucide-react';
 import { calculateTax } from '@/lib/tax-calculator';
 
 interface PayPeriod {
@@ -66,14 +66,40 @@ export default function PaySummary({ payPeriod }: PaySummaryProps) {
     }
   };
 
+  const handlePrint = () => {
+    // Isolate this section for printing
+    document.body.classList.add('printing-section');
+    const printArea = document.getElementById('current-period-print-area');
+    if (printArea) printArea.classList.add('active-print');
+
+    // Temporarily expand the breakdown if it's closed
+    const wasClosed = !showBreakdown;
+    if (wasClosed) setShowBreakdown(true);
+
+    setTimeout(() => {
+      window.print();
+
+      // Cleanup
+      document.body.classList.remove('printing-section');
+      if (printArea) printArea.classList.remove('active-print');
+      if (wasClosed) setShowBreakdown(false);
+    }, 150);
+  };
+
   const hasShifts = (payPeriod?.shifts?.length ?? 0) > 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-white rounded-lg shadow-lg p-6 border border-transparent print:border-none print:shadow-none">
+      {/* Print Title (Hidden on screen) */}
+      <div className="hidden print:block mb-6 pb-2 border-b-2 border-emerald-600">
+        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Take-Home Pay Tracker</h1>
+        <p className="text-gray-500 font-medium">Pay Period Report</p>
+      </div>
+
       {/* Period Dates */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-emerald-600" />
+          <Calendar className="w-5 h-5 text-emerald-600 print:text-gray-800" />
           <div>
             <p className="text-sm text-gray-500">Current Pay Period</p>
             <p className="font-semibold text-gray-800">
@@ -82,14 +108,23 @@ export default function PaySummary({ payPeriod }: PaySummaryProps) {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleNewPeriod}
-          disabled={loading}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className="w-4 h-4" />
-          New Period
-        </button>
+        <div className="flex gap-2 no-print">
+          <button
+            onClick={handlePrint}
+            className="bg-white border hover:bg-gray-50 text-gray-700 border-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shadow-sm"
+          >
+            <Printer className="w-4 h-4 text-emerald-600" />
+            Print Report
+          </button>
+          <button
+            onClick={handleNewPeriod}
+            disabled={loading}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            New Period
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -164,8 +199,8 @@ export default function PaySummary({ payPeriod }: PaySummaryProps) {
                     onClick={handleTogglePension}
                     disabled={loading}
                     className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-colors disabled:opacity-50 ${payPeriod?.pensionEnabled
-                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-300'
+                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-300'
                       }`}
                   >
                     {payPeriod?.pensionEnabled ? '✓ ON' : 'OFF'}

@@ -96,25 +96,28 @@ export default async function Home() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Pay Period Summary - Top */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-6 h-6 text-emerald-600" />
-            <h2 className="text-2xl font-bold text-gray-800">Pay Period Summary</h2>
-          </div>
-          <PaySummary payPeriod={payPeriod} />
-        </div>
-
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Left Column - Shift Entry */}
-          <div>
-            <ShiftForm payPeriodId={payPeriod.id} />
+        {/* CURRENT PERIOD PRINT AREA */}
+        <div id="current-period-print-area" className="print-container">
+          {/* Pay Period Summary - Top */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-6 h-6 text-emerald-600 no-print" />
+              <h2 className="text-2xl font-bold text-gray-800">Pay Period Summary</h2>
+            </div>
+            <PaySummary payPeriod={payPeriod} />
           </div>
 
-          {/* Right Column - Shift History */}
-          <div>
-            <ShiftList shifts={payPeriod.shifts ?? []} />
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Left Column - Shift Entry */}
+            <div className="no-print">
+              <ShiftForm payPeriodId={payPeriod.id} />
+            </div>
+
+            {/* Right Column - Shift History */}
+            <div>
+              <ShiftList shifts={payPeriod.shifts ?? []} />
+            </div>
           </div>
         </div>
 

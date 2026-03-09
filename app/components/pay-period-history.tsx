@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import {
   History, ChevronDown, ChevronUp, Calendar, Wallet,
   TrendingUp, Trash2, AlertTriangle, X, Clock, Briefcase,
-  ShieldCheck,
+  ShieldCheck, Printer
 } from 'lucide-react';
 import { calculateTax } from '@/lib/tax-calculator';
 
@@ -56,6 +56,26 @@ export default function PayPeriodHistory({ periods }: PayPeriodHistoryProps) {
     }
   };
 
+  const handlePrint = (periodId: string) => {
+    document.body.classList.add('printing-section');
+    const printArea = document.getElementById(`history-period-${periodId}`);
+    if (printArea) printArea.classList.add('active-print');
+
+    // Temporarily ensure shifts are visible before print
+    const wasShiftsVisible = showShiftsId === periodId;
+    if (!wasShiftsVisible) setShowShiftsId(periodId);
+
+    setTimeout(() => {
+      window.print();
+
+      // Cleanup
+      document.body.classList.remove('printing-section');
+      if (printArea) printArea.classList.remove('active-print');
+      if (!wasShiftsVisible) setShowShiftsId(null);
+    }, 150);
+  };
+
+
   if ((periods?.length ?? 0) === 0) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-8 text-center">
@@ -91,12 +111,13 @@ export default function PayPeriodHistory({ periods }: PayPeriodHistoryProps) {
 
           return (
             <div
+              id={`history-period-${period?.id}`}
               key={period?.id}
-              className={`border rounded-xl overflow-hidden transition-all ${isConfirmingDelete
-                  ? 'border-red-300'
-                  : isExpanded
-                    ? 'border-emerald-300 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+              className={`print-container border rounded-xl overflow-hidden transition-all print:border-none print:shadow-none ${isConfirmingDelete
+                ? 'border-red-300'
+                : isExpanded
+                  ? 'border-emerald-300 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                 }`}
             >
               {/* ── Period Header ── */}
@@ -134,7 +155,13 @@ export default function PayPeriodHistory({ periods }: PayPeriodHistoryProps) {
 
               {/* ── Expanded Detail Panel ── */}
               {isExpanded && (
-                <div className="px-5 pb-5 pt-4 border-t border-gray-100">
+                <div className="px-5 pb-5 pt-4 border-t border-gray-100 print:border-none">
+
+                  {/* Print Title (Hidden on screen) */}
+                  <div className="hidden print:block mb-6 pb-2 border-b-2 border-emerald-600">
+                    <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Take-Home Pay Tracker</h1>
+                    <p className="text-gray-500 font-medium">Historical Pay Period Report: {period?.startDate ? format(new Date(period.startDate), 'd MMM') : '?'} – {period?.endDate ? format(new Date(period.endDate), 'd MMM yyyy') : '?'}</p>
+                  </div>
 
                   {/* Delete Confirmation */}
                   {isConfirmingDelete ? (
@@ -271,16 +298,25 @@ export default function PayPeriodHistory({ periods }: PayPeriodHistoryProps) {
                     </div>
                   )}
 
-                  {/* Delete Period Button */}
-                  {!isConfirmingDelete && (
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 mt-4 no-print">
                     <button
-                      onClick={() => setConfirmDeleteId(period?.id ?? null)}
-                      className="w-full mt-1 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      onClick={() => handlePrint(period?.id ?? '')}
+                      className="flex-1 text-sm text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Delete This Pay Period
+                      <Printer className="w-4 h-4 text-emerald-600" />
+                      Print Report
                     </button>
-                  )}
+                    {!isConfirmingDelete && (
+                      <button
+                        onClick={() => setConfirmDeleteId(period?.id ?? null)}
+                        className="flex-1 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete Period
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

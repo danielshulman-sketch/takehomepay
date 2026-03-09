@@ -41,3 +41,49 @@ body {
 [data-hydration-error] {
   display: none !important;
 }
+
+/* --- PRINT STYLES --- */
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* When printing a specific section, hide all other sections */
+  body.printing-section .print-container {
+    display: none !important;
+  }
+  
+  /* Show only the active print section */
+  body.printing-section .print-container.active-print {
+    display: block !important;
+  }
+
+  /* Clean up borders and shadows for print */
+  .shadow-lg, .shadow-md, .shadow-sm {
+    box-shadow: none !important;
+  }
+  
+  .border, .border-emerald-300, .border-gray-200 {
+    border-color: #e5e7eb !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
